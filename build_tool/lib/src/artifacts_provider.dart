@@ -223,16 +223,12 @@ class ArtifactProvider {
         final downloadedPath = path.join(downloadedArtifactsDir, fileName);
 
         if (!File(downloadedPath).existsSync()) {
-          String filePath = "${Directory.current.path}/directory.txt";
-          File file = File(filePath);
-
-          if (file.existsSync()) {
-            String firstLine = file.readAsLinesSync().first;
-
+          final sdkDirectory = userOptions.sdkDirectory;
+          if (sdkDirectory != null) {
             await _tryLocalDownloadArtifacts(
               fileName: fileName,
               finalPath: downloadedPath,
-              sdkDirectory: firstLine,
+              sdkDirectory: sdkDirectory,
             );
           }
         }
