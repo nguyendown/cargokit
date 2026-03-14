@@ -223,12 +223,12 @@ class ArtifactProvider {
         final downloadedPath = path.join(downloadedArtifactsDir, fileName);
 
         if (!File(downloadedPath).existsSync()) {
-          final sdkDirectory = userOptions.sdkDirectory;
-          if (sdkDirectory != null) {
-            await _tryLocalDownloadArtifacts(
-              fileName: fileName,
+          final localPrecompiledDir = userOptions.localPrecompiledDir;
+          if (localPrecompiledDir != null) {
+            await _tryLocalArtifacts(
+              target: fileName,
               finalPath: downloadedPath,
-              sdkDirectory: sdkDirectory,
+              localPrecompiledDir: localPrecompiledDir,
             );
           }
         }
@@ -288,12 +288,12 @@ class ArtifactProvider {
     }
   }
 
-  Future<void> _tryLocalDownloadArtifacts({
-    required String fileName,
+  Future<void> _tryLocalArtifacts({
+    required String target,
     required String finalPath,
-    required String sdkDirectory,
+    required String localPrecompiledDir,
   }) async {
-    final sdkPath = '$sdkDirectory/binary/$fileName';
+    final sdkPath = '$localPrecompiledDir/$target';
     final binaryFile = File(sdkPath);
     if (!binaryFile.existsSync()) {
       throw Exception('Missing artifact: ${binaryFile.path}');
