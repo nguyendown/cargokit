@@ -241,11 +241,15 @@ class CargokitUserOptions {
     required this.localPrecompiledDir,
   });
 
+  static String _defaultLocalPrecompiledDir() {
+    return path.join(Directory(Environment.rootProjectDir).parent.path, 'binary');
+  }
+
   CargokitUserOptions._()
       : usePrecompiledBinaries = defaultUsePrecompiledBinaries(),
         verboseLogging = false,
         useLocalPrecompiledBinaries = false,
-        localPrecompiledDir = null;
+        localPrecompiledDir = _defaultLocalPrecompiledDir();
 
   static CargokitUserOptions parse(YamlNode node) {
     if (node is! YamlMap) {
@@ -254,7 +258,7 @@ class CargokitUserOptions {
     bool usePrecompiledBinaries = defaultUsePrecompiledBinaries();
     bool verboseLogging = false;
     bool useLocalPrecompiledBinaries = false;
-    String? localPrecompiledDir;
+    String localPrecompiledDir = _defaultLocalPrecompiledDir();
 
     for (final entry in node.nodes.entries) {
       if (entry.key case YamlScalar(value: 'use_precompiled_binaries')) {
@@ -329,5 +333,5 @@ class CargokitUserOptions {
   final bool usePrecompiledBinaries;
   final bool verboseLogging;
   final bool useLocalPrecompiledBinaries;
-  final String? localPrecompiledDir;
+  final String localPrecompiledDir;
 }

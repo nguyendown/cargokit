@@ -224,13 +224,11 @@ class ArtifactProvider {
 
         if (!File(downloadedPath).existsSync()) {
           final localPrecompiledDir = userOptions.localPrecompiledDir;
-          if (localPrecompiledDir != null) {
-            await _tryLocalArtifacts(
-              target: fileName,
-              finalPath: downloadedPath,
-              localPrecompiledDir: localPrecompiledDir,
-            );
-          }
+          await _tryLocalArtifacts(
+            target: fileName,
+            finalPath: downloadedPath,
+            localPrecompiledDir: localPrecompiledDir,
+          );
         }
         if (File(downloadedPath).existsSync()) {
           artifactsForTarget.add(Artifact(

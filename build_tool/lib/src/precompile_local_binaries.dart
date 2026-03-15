@@ -15,6 +15,7 @@ class PrecompileLocalBinaries {
   PrecompileLocalBinaries({
     required this.manifestDir,
     required this.targets,
+    required this.localPrecompiledDir,
     this.androidSdkLocation,
     this.androidNdkVersion,
     this.androidMinSdkVersion,
@@ -23,6 +24,7 @@ class PrecompileLocalBinaries {
 
   final String manifestDir;
   final List<Target> targets;
+  final String localPrecompiledDir;
   final String? androidSdkLocation;
   final String? androidNdkVersion;
   final int? androidMinSdkVersion;
@@ -94,7 +96,7 @@ class PrecompileLocalBinaries {
           throw Exception('Missing artifact: ${file.path}');
         }
 
-        String destinationPath = "../binary/$target/$name";
+        String destinationPath = "$localPrecompiledDir/$target/$name";
         File destinationFile = File(destinationPath);
         destinationFile.parent.createSync(recursive: true);
         file.copySync(destinationPath);

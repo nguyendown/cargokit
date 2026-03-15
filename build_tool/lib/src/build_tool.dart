@@ -170,9 +170,12 @@ class PrecompileLocalBinariesCommand extends Command {
       return res;
     }).toList(growable: false);
 
+    final userOptions = CargokitUserOptions.load();
+
     final precompileBinaries = PrecompileLocalBinaries(
       manifestDir: manifestDir,
       targets: targets,
+      localPrecompiledDir: userOptions.localPrecompiledDir,
       androidSdkLocation: argResults!['android-sdk-location'] as String?,
       androidNdkVersion: argResults!['android-ndk-version'] as String?,
       androidMinSdkVersion: androidMinSdkVersion,
