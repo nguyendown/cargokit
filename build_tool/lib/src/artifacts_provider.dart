@@ -51,9 +51,20 @@ class ArtifactProvider {
   final CargokitUserOptions userOptions;
 
   Future<Map<Target, List<Artifact>>> getArtifacts(List<Target> targets) async {
-    final result = userOptions.useLocalPrecompiledBinaries
-        ? await _getLocalPrecompiledArtifacts(targets)
-        : await _getPrecompiledArtifacts(targets);
+    final result = <Target, List<Artifact>>{};
+
+    if (userOptions.useLocalPrecompiledBinaries) {
+      final localResult = await _getLocalPrecompiledArtifacts(targets);
+      result.addAll(localResult);
+    }
+
+    if (userOptions.usePrecompiledBinaries) {
+      final pendingTargets = targets.where((t) => !result.containsKey(t)).toList();
+      if (pendingTargets.isNotEmpty) {
+        final remoteResult = await _getPrecompiledArtifacts(pendingTargets);
+        result.addAll(remoteResult);
+      }
+    }
 
     final pendingTargets = List.of(targets);
     pendingTargets.removeWhere((element) => result.containsKey(element));
