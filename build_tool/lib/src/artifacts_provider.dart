@@ -51,7 +51,7 @@ class ArtifactProvider {
   final CargokitUserOptions userOptions;
 
   Future<Map<Target, List<Artifact>>> getArtifacts(List<Target> targets) async {
-    final result = userOptions.useLocalPrecompiledBinaries == false
+    final result = userOptions.useLocalPrecompiledBinaries
         ? await _getLocalPrecompiledArtifacts(targets)
         : await _getPrecompiledArtifacts(targets);
 
