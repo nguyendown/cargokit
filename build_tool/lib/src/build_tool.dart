@@ -103,6 +103,11 @@ class PrecompileLocalBinariesCommand extends Command {
         mandatory: true,
         help: 'Directory containing Cargo.toml',
       )
+      ..addOption(
+        'local-precompiled-dir',
+        mandatory: true,
+        help: 'Directory to store precompiled binaries',
+      )
       ..addMultiOption(
         'target',
         help: 'Rust target triple of artifact to build.\n'
@@ -170,12 +175,12 @@ class PrecompileLocalBinariesCommand extends Command {
       return res;
     }).toList(growable: false);
 
-    final userOptions = CargokitUserOptions.load();
+    final localPrecompiledDir = argResults!['local-precompiled-dir'] as String;
 
     final precompileBinaries = PrecompileLocalBinaries(
       manifestDir: manifestDir,
       targets: targets,
-      localPrecompiledDir: userOptions.localPrecompiledDir,
+      localPrecompiledDir: localPrecompiledDir,
       androidSdkLocation: argResults!['android-sdk-location'] as String?,
       androidNdkVersion: argResults!['android-ndk-version'] as String?,
       androidMinSdkVersion: androidMinSdkVersion,
