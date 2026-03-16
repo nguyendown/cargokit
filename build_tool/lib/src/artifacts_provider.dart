@@ -307,7 +307,7 @@ class ArtifactProvider {
     final sdkPath = '$localPrecompiledDir/$target';
     final binaryFile = File(sdkPath);
     if (!binaryFile.existsSync()) {
-      throw Exception('Missing artifact: ${binaryFile.path}');
+      return;
     }
     File destinationFile = File(finalPath);
     destinationFile.parent.createSync(recursive: true);
