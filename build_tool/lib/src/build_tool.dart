@@ -105,7 +105,6 @@ class PrecompileLocalBinariesCommand extends Command {
       )
       ..addOption(
         'local-precompiled-dir',
-        mandatory: true,
         help: 'Directory to store precompiled binaries',
       )
       ..addMultiOption(
@@ -175,7 +174,7 @@ class PrecompileLocalBinariesCommand extends Command {
       return res;
     }).toList(growable: false);
 
-    final localPrecompiledDir = argResults!['local-precompiled-dir'] as String;
+    final localPrecompiledDir = argResults!['local-precompiled-dir'] as String?;
 
     final precompileBinaries = PrecompileLocalBinaries(
       manifestDir: manifestDir,

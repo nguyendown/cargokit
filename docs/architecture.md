@@ -40,9 +40,11 @@ Cargokit will build binaries for all active architectures from XCode build and l
 
 When using Cargokit to integrate Rust code with an application (not a plugin) you can also configure the `Cargo.toml` to just build a dynamic library. When Cargokit finds that the crate only built a dylib and no static lib, it will attempt to replace the Cocoapod framework binary with the dylib. In this case the script `:execution_position` must be set to `:after_compile`. This is *not* recommended for plugins and it's quite experimental.
 
-### gen-key, precompile-binaries, verify-binaries
+### gen-key, precompile-binaries, precompile-local-binaries, verify-binaries
 
 These are used as when providing precompiled binaries for Plugin. See [precompiled_binaries.md](precompiled_binaries.md) for more information.
+
+`precompile-local-binaries` is used to build binaries locally and store them in a directory. The `--local-precompiled-dir` argument is optional; if omitted, it will use the path from `cargokit.yaml` or default to a `precompiled/` directory next to `Cargo.toml`.
 
 ## Launching the build_tool during build.
 
@@ -74,6 +76,11 @@ precompiled_binaries:
 
   # Public key for verifying downloaded precompiled binaries.
   public_key: 3a257ef1c7d72d84225ac4658d24812ada50a7a7a8a2138c2a91353389fdc514
+
+local_precompiled_binaries:
+  # Path to directory containing precompiled binaries.
+  # Can be relative to cargokit.yaml or absolute.
+  path: precompiled
 ```
 
 ### Configuration for the application consuming the plugin
@@ -89,6 +96,11 @@ verbose_logging: true
 # is not installed. With `use_precompiled_binaries` set to false, the build will
 # instead be aborted prompting user to install Rustup.
 use_precompiled_binaries: false
+
+# Enables use of local precompiled binaries.
+# If set to true, Cargokit will look for precompiled binaries in the path
+# specified in crate's cargokit.yaml.
+use_local_precompiled_binaries: true
 ```
 
 ## Detecting Rustup

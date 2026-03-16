@@ -15,7 +15,7 @@ class PrecompileLocalBinaries {
   PrecompileLocalBinaries({
     required this.manifestDir,
     required this.targets,
-    required this.localPrecompiledDir,
+    this.localPrecompiledDir,
     this.androidSdkLocation,
     this.androidNdkVersion,
     this.androidMinSdkVersion,
@@ -24,7 +24,7 @@ class PrecompileLocalBinaries {
 
   final String manifestDir;
   final List<Target> targets;
-  final String localPrecompiledDir;
+  final String? localPrecompiledDir;
   final String? androidSdkLocation;
   final String? androidNdkVersion;
   final int? androidMinSdkVersion;
@@ -64,6 +64,18 @@ class PrecompileLocalBinaries {
     tempDir.createSync(recursive: true);
 
     final crateOptions = CargokitCrateOptions.load(manifestDir: manifestDir);
+
+    String? localPrecompiledDir = this.localPrecompiledDir;
+    if (localPrecompiledDir == null) {
+      final options = crateOptions.localPrecompiledBinaries;
+      if (options != null) {
+        localPrecompiledDir = path.isAbsolute(options.path)
+            ? options.path
+            : path.join(manifestDir, options.path);
+      } else {
+        localPrecompiledDir = path.join(manifestDir, 'precompiled');
+      }
+    }
 
     final buildEnvironment = BuildEnvironment(
       configuration: BuildConfiguration.release,
