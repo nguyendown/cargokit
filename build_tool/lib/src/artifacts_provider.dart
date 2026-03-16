@@ -59,7 +59,8 @@ class ArtifactProvider {
     }
 
     if (userOptions.usePrecompiledBinaries) {
-      final pendingTargets = targets.where((t) => !result.containsKey(t)).toList();
+      final pendingTargets =
+          targets.where((t) => !result.containsKey(t)).toList();
       if (pendingTargets.isNotEmpty) {
         final remoteResult = await _getPrecompiledArtifacts(pendingTargets);
         result.addAll(remoteResult);
@@ -194,42 +195,22 @@ class ArtifactProvider {
   Future<Map<Target, List<Artifact>>> _getLocalPrecompiledArtifacts(
     List<Target> targets,
   ) async {
-    if (userOptions.useLocalPrecompiledBinaries == false) {
-      _log.info('Local precompiled binaries are disabled');
-      return {};
-    }
-
     final options = environment.crateOptions.localPrecompiledBinaries;
     if (options == null) {
-      _log.fine('Precompiled binaries not enabled for this crate');
       return {};
     }
-
-    final start = Stopwatch()..start();
-    final crateHash = CrateHash.compute(
-      environment.manifestDir,
-      tempStorage: environment.targetTempDir,
-    );
-    _log.fine(
-        'Computed crate hash $crateHash in ${start.elapsedMilliseconds}ms');
-
-    final downloadedArtifactsDir = path.join(
-      environment.targetTempDir,
-      'precompiled',
-      crateHash,
-    );
-    Directory(downloadedArtifactsDir).createSync(recursive: true);
-
-    final res = <Target, List<Artifact>>{};
 
     final localPrecompiledDir = path.isAbsolute(options.path)
         ? options.path
         : path.join(environment.manifestDir, options.path);
 
     if (!Directory(localPrecompiledDir).existsSync()) {
-      _log.warning('local_precompiled_binaries path "$localPrecompiledDir" does not exist');
+      _log.warning(
+          'local_precompiled_binaries path "$localPrecompiledDir" does not exist');
       return {};
     }
+
+    final res = <Target, List<Artifact>>{};
 
     for (final target in targets) {
       final requiredArtifacts = getArtifactNames(
@@ -240,20 +221,12 @@ class ArtifactProvider {
       final artifactsForTarget = <Artifact>[];
 
       for (final artifact in requiredArtifacts) {
-        final fileName =
-            '$target/$artifact'; // PrecompileBinaries.fileName(target, artifact);
-        final downloadedPath = path.join(downloadedArtifactsDir, fileName);
+        final fileName = '$target/$artifact';
+        final localPath = path.join(localPrecompiledDir, fileName);
 
-        if (!File(downloadedPath).existsSync()) {
-          await _tryLocalArtifacts(
-            target: fileName,
-            finalPath: downloadedPath,
-            localPrecompiledDir: localPrecompiledDir,
-          );
-        }
-        if (File(downloadedPath).existsSync()) {
+        if (File(localPath).existsSync()) {
           artifactsForTarget.add(Artifact(
-            path: downloadedPath,
+            path: localPath,
             finalFileName: artifact,
           ));
         } else {
@@ -263,7 +236,7 @@ class ArtifactProvider {
 
       // Only provide complete set of artifacts.
       if (artifactsForTarget.length == requiredArtifacts.length) {
-        _log.fine('Found precompiled artifacts for $target');
+        _log.fine('Found local precompiled artifacts for $target');
         res[target] = artifactsForTarget;
       }
     }
@@ -305,21 +278,6 @@ class ArtifactProvider {
     } else {
       _log.shout('Signature verification failed! Ignoring binary.');
     }
-  }
-
-  Future<void> _tryLocalArtifacts({
-    required String target,
-    required String finalPath,
-    required String localPrecompiledDir,
-  }) async {
-    final sdkPath = '$localPrecompiledDir/$target';
-    final binaryFile = File(sdkPath);
-    if (!binaryFile.existsSync()) {
-      return;
-    }
-    File destinationFile = File(finalPath);
-    destinationFile.parent.createSync(recursive: true);
-    binaryFile.copySync(finalPath);
   }
 }
 

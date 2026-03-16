@@ -14,11 +14,9 @@ This is how the process looks from the perspective of the build:
 
 2. Cargokit checks if there is `cargokit.yaml` file in the Rust crate and looks for the `local_precompiled_binaries` section to find the path where the binaries are stored.
 
-3. Cargokit computes a `crate-hash` to uniquely identify the crate version. This is used for caching the binaries in a temporary directory, but it is not used for locating the local binaries in the source directory.
+3. Cargokit looks for the required binaries in the specified local directory using the structure `localPrecompiledDir/$target/$artifactName`.
 
-4. Cargokit looks for the required binaries in the specified local directory using the structure `localPrecompiledDir/$target/$artifactName`.
-
-5. If the binaries are found, they are copied to the temporary build directory and used. Otherwise, Cargokit will attempt to build from source (or fall back to remote precompiled binaries if configured).
+4. If the binaries are found, they are used directly from that location. Otherwise, Cargokit will attempt to build from source (or fall back to remote precompiled binaries if configured).
 
 ## Configuring Local Precompiled Binaries
 
