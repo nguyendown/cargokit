@@ -198,7 +198,9 @@ class ArtifactProvider {
       _log.info('Local precompiled binaries are disabled');
       return {};
     }
-    if (environment.crateOptions.precompiledBinaries == null) {
+
+    final options = environment.crateOptions.localPrecompiledBinaries;
+    if (options == null) {
       _log.fine('Precompiled binaries not enabled for this crate');
       return {};
     }
@@ -220,6 +222,15 @@ class ArtifactProvider {
 
     final res = <Target, List<Artifact>>{};
 
+    final localPrecompiledDir = path.isAbsolute(options.path)
+        ? options.path
+        : path.join(environment.manifestDir, options.path);
+
+    if (!Directory(localPrecompiledDir).existsSync()) {
+      _log.warning('local_precompiled_binaries path "$localPrecompiledDir" does not exist');
+      return {};
+    }
+
     for (final target in targets) {
       final requiredArtifacts = getArtifactNames(
         target: target,
@@ -234,14 +245,11 @@ class ArtifactProvider {
         final downloadedPath = path.join(downloadedArtifactsDir, fileName);
 
         if (!File(downloadedPath).existsSync()) {
-          final localPrecompiledDir = userOptions.localPrecompiledDir;
-          if (localPrecompiledDir != null) {
-            await _tryLocalArtifacts(
-              target: fileName,
-              finalPath: downloadedPath,
-              localPrecompiledDir: localPrecompiledDir,
-            );
-          }
+          await _tryLocalArtifacts(
+            target: fileName,
+            finalPath: downloadedPath,
+            localPrecompiledDir: localPrecompiledDir,
+          );
         }
         if (File(downloadedPath).existsSync()) {
           artifactsForTarget.add(Artifact(

@@ -31,6 +31,15 @@ public_key: a4c3433798eb2c36edf2b94dbb4dd899d57496ca373a8982d8a792410b7f6445
     expect(precompiledBinaries.publicKey.bytes, key);
   });
 
+  test('parseLocalPrecompiledBinaries', () {
+    final yaml = """
+path: /path/to/dir
+""";
+    final localPrecompiledBinaries =
+        LocalPrecompiledBinaries.parse(loadYamlNode(yaml));
+    expect(localPrecompiledBinaries.path, '/path/to/dir');
+  });
+
   test('parseCargokitOptions', () {
     const yaml = '''
 cargo:
@@ -47,12 +56,16 @@ cargo:
 precompiled_binaries:
   url_prefix: https://url-prefix
   public_key: a4c3433798eb2c36edf2b94dbb4dd899d57496ca373a8982d8a792410b7f6445
+
+local_precompiled_binaries:
+  path: /path/to/dir
 ''';
     final options = CargokitCrateOptions.parse(loadYamlNode(yaml));
     expect(options.precompiledBinaries?.uriPrefix, 'https://url-prefix');
     final key = HEX.decode(
         'a4c3433798eb2c36edf2b94dbb4dd899d57496ca373a8982d8a792410b7f6445');
     expect(options.precompiledBinaries?.publicKey.bytes, key);
+    expect(options.localPrecompiledBinaries?.path, '/path/to/dir');
 
     final debugOptions = options.cargo[BuildConfiguration.debug]!;
     expect(debugOptions.toolchain, Toolchain.nightly);
@@ -66,10 +79,12 @@ precompiled_binaries:
   test('parseCargokitUserOptions', () {
     const yaml = '''
 use_precompiled_binaries: false
+use_local_precompiled_binaries: true
 verbose_logging: true
 ''';
     final options = CargokitUserOptions.parse(loadYamlNode(yaml));
     expect(options.usePrecompiledBinaries, false);
+    expect(options.useLocalPrecompiledBinaries, true);
     expect(options.verboseLogging, true);
   });
 }

@@ -160,15 +160,42 @@ class PrecompiledBinaries {
   }
 }
 
+class LocalPrecompiledBinaries {
+  final String path;
+
+  LocalPrecompiledBinaries({
+    required this.path,
+  });
+
+  static LocalPrecompiledBinaries parse(YamlNode node) {
+    if (node case YamlMap(valueMap: Map<dynamic, YamlNode> map)) {
+      if (map case {'path': YamlNode pathNode}) {
+        final path = switch (pathNode) {
+          YamlScalar(value: String path) => path,
+          _ => throw SourceSpanException(
+              'Invalid path value.', pathNode.span),
+        };
+        return LocalPrecompiledBinaries(path: path);
+      }
+    }
+    throw SourceSpanException(
+        'Invalid local precompiled binaries value. '
+        'Expected Map with "path".',
+        node.span);
+  }
+}
+
 /// Cargokit options specified for Rust crate.
 class CargokitCrateOptions {
   CargokitCrateOptions({
     this.cargo = const {},
     this.precompiledBinaries,
+    this.localPrecompiledBinaries,
   });
 
   final Map<BuildConfiguration, CargoBuildOptions> cargo;
   final PrecompiledBinaries? precompiledBinaries;
+  final LocalPrecompiledBinaries? localPrecompiledBinaries;
 
   static CargokitCrateOptions parse(YamlNode node) {
     if (node is! YamlMap) {
@@ -176,6 +203,7 @@ class CargokitCrateOptions {
     }
     final options = <BuildConfiguration, CargoBuildOptions>{};
     PrecompiledBinaries? precompiledBinaries;
+    LocalPrecompiledBinaries? localPrecompiledBinaries;
 
     for (final entry in node.nodes.entries) {
       if (entry
@@ -201,15 +229,18 @@ class CargokitCrateOptions {
         }
       } else if (entry.key case YamlScalar(value: 'precompiled_binaries')) {
         precompiledBinaries = PrecompiledBinaries.parse(entry.value);
+      } else if (entry.key case YamlScalar(value: 'local_precompiled_binaries')) {
+        localPrecompiledBinaries = LocalPrecompiledBinaries.parse(entry.value);
       } else {
         throw SourceSpanException(
-            'Unknown cargokit option type. Must be "cargo" or "precompiled_binaries".',
+            'Unknown cargokit option type. Must be "cargo", "precompiled_binaries" or "local_precompiled_binaries".',
             entry.key.span);
       }
     }
     return CargokitCrateOptions(
       cargo: options,
       precompiledBinaries: precompiledBinaries,
+      localPrecompiledBinaries: localPrecompiledBinaries,
     );
   }
 
@@ -238,14 +269,12 @@ class CargokitUserOptions {
     required this.usePrecompiledBinaries,
     required this.verboseLogging,
     required this.useLocalPrecompiledBinaries,
-    required this.localPrecompiledDir,
   });
 
   CargokitUserOptions._()
       : usePrecompiledBinaries = defaultUsePrecompiledBinaries(),
         verboseLogging = false,
-        useLocalPrecompiledBinaries = false,
-        localPrecompiledDir = null;
+        useLocalPrecompiledBinaries = false;
 
   static String? _userOptionDir;
 
@@ -256,7 +285,6 @@ class CargokitUserOptions {
     bool usePrecompiledBinaries = defaultUsePrecompiledBinaries();
     bool verboseLogging = false;
     bool useLocalPrecompiledBinaries = false;
-    String? localPrecompiledDir;
 
     for (final entry in node.nodes.entries) {
       if (entry.key case YamlScalar(value: 'use_precompiled_binaries')) {
@@ -284,26 +312,9 @@ class CargokitUserOptions {
         throw SourceSpanException(
             'Invalid value for "use_local_precompiled_binaries". Must be a boolean.',
             entry.value.span);
-      } else if (entry.key case YamlScalar(value: 'local_precompiled_directory')) {
-        if (entry.value case YamlScalar(value: String value)) {
-          final baseDir = _userOptionDir ?? Directory.current.path;
-          final fullPath = path.isAbsolute(value)
-              ? value
-              : path.join(baseDir, value);
-          if (Directory(fullPath).existsSync()) {
-            localPrecompiledDir = fullPath;
-          } else {
-            localPrecompiledDir = null;
-            _log.info('local_precompiled_directory "$fullPath" does not exist');
-          }
-          continue;
-        }
-        throw SourceSpanException(
-            'Invalid value for "local_precompiled_directory". Must be a string.',
-            entry.value.span);
       } else {
         throw SourceSpanException(
-            'Unknown cargokit option type. Must be "use_precompiled_binaries", "use_local_precompiled_binaries", "local_precompiled_directory" or "verbose_logging".',
+            'Unknown cargokit option type. Must be "use_precompiled_binaries", "use_local_precompiled_binaries" or "verbose_logging".',
             entry.key.span);
       }
     }
@@ -311,7 +322,6 @@ class CargokitUserOptions {
       usePrecompiledBinaries: usePrecompiledBinaries,
       verboseLogging: verboseLogging,
       useLocalPrecompiledBinaries: useLocalPrecompiledBinaries,
-        localPrecompiledDir: localPrecompiledDir,
     );
   }
 
@@ -342,5 +352,4 @@ class CargokitUserOptions {
   final bool usePrecompiledBinaries;
   final bool verboseLogging;
   final bool useLocalPrecompiledBinaries;
-  final String? localPrecompiledDir;
 }
