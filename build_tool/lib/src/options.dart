@@ -247,6 +247,8 @@ class CargokitUserOptions {
         useLocalPrecompiledBinaries = false,
         localPrecompiledDir = null;
 
+  static String? _userOptionDir;
+
   static CargokitUserOptions parse(YamlNode node) {
     if (node is! YamlMap) {
       throw SourceSpanException('Cargokit options must be a map', node.span);
@@ -284,7 +286,16 @@ class CargokitUserOptions {
             entry.value.span);
       } else if (entry.key case YamlScalar(value: 'local_precompiled_directory')) {
         if (entry.value case YamlScalar(value: String value)) {
-          localPrecompiledDir = value;
+          final baseDir = _userOptionDir ?? Directory.current.path;
+          final fullPath = path.isAbsolute(value)
+              ? value
+              : path.join(baseDir, value);
+          if (Directory(fullPath).existsSync()) {
+            localPrecompiledDir = fullPath;
+          } else {
+            localPrecompiledDir = null;
+            _log.info('local_precompiled_directory "$fullPath" does not exist');
+          }
           continue;
         }
         throw SourceSpanException(
@@ -315,7 +326,9 @@ class CargokitUserOptions {
           configFile.readAsStringSync(),
           sourceUrl: configFile.uri,
         );
+        _userOptionDir = userProjectDir.path;
         final res = parse(contents);
+        _userOptionDir = null;
         if (res.verboseLogging) {
           _log.info('Found user options file at ${configFile.path}');
         }
