@@ -76,12 +76,12 @@ jobs:
       - name: Precompile binaries
         run: |
           dart run build_tool precompile-local-binaries \
-            --manifest-dir ${{ github.workspace }}/rust/ \
+            --manifest-dir ../../rust/ \
             --local-precompiled-dir ${{ github.workspace }}/artifacts/ \
             --android-sdk-location "$ANDROID_HOME" \
             --android-ndk-version 28.2.13676358 \
             --android-min-sdk-version 24
-        working-directory: rust_builder/cargokit/build_tool
+        working-directory: rust_plugin/cargokit/build_tool
 
       - name: Upload precompiled binaries
         uses: actions/upload-artifact@v4
