@@ -276,8 +276,6 @@ class CargokitUserOptions {
         verboseLogging = false,
         useLocalPrecompiledBinaries = false;
 
-  static String? _userOptionDir;
-
   static CargokitUserOptions parse(YamlNode node) {
     if (node is! YamlMap) {
       throw SourceSpanException('Cargokit options must be a map', node.span);
@@ -336,9 +334,7 @@ class CargokitUserOptions {
           configFile.readAsStringSync(),
           sourceUrl: configFile.uri,
         );
-        _userOptionDir = userProjectDir.path;
         final res = parse(contents);
-        _userOptionDir = null;
         if (res.verboseLogging) {
           _log.info('Found user options file at ${configFile.path}');
         }
